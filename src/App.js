@@ -15,7 +15,7 @@ class SearchBooksResult extends Component {
     return (
 
       <div className="search-books-results">
-        <ol className="books-grid"></ol>
+        <BookShelfBooks books={books} />
       </div>
     )
   }
@@ -73,10 +73,11 @@ class SearchPage extends Component {
   state = {
     books: []
   }
+
   setBooks = (results) => {
     console.log(results)
     this.setState({
-      books: [results]
+      books: (results === undefined || 'error' in results) ? [] : results
     })
   }
   render() {
@@ -140,7 +141,7 @@ class Book extends Component {
     return (
       <div className="book">
         <div className="book-top">
-          <div className="book-cover" style={{ width: 128, height: 188, backgroundImage: `url(${book.imageLinks.thumbnail})` }} ></div>
+          <div className="book-cover" style={{ width: 128, height: 188, backgroundImage: `url(${('imageLinks' in book && 'thumbnail' in book.imageLinks && book.imageLinks.thumbnail !== undefined ? book.imageLinks.thumbnail : '')})` }} ></div>
           <BookShelfChanger />
         </div>
         <div className="book-title">{book.title}</div>
