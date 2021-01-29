@@ -82,7 +82,6 @@ class SearchPage extends Component {
   }
 
   setBooks = (results) => {
-    console.log(results)
     this.setState({
       books: (results === undefined || 'error' in results) ? [] : results
     })
@@ -156,12 +155,13 @@ class Book extends Component {
 
   render() {
     const { book, shelves } = this.props;
+    const bookCurrentShelf = book.shelf ? book.shelf : ''
     const bookthumbnail = ('imageLinks' in book && 'thumbnail' in book.imageLinks && book.imageLinks.thumbnail !== undefined ? book.imageLinks.thumbnail : '')
     return (
       <div className="book">
         <div className="book-top">
           <div className="book-cover" style={{ width: 128, height: 188, backgroundImage: `url(${bookthumbnail})` }} ></div>
-          <BookShelfChanger shelves={shelves} selectShelf={this.selectShelf} />
+          <BookShelfChanger shelves={shelves} selectShelf={this.selectShelf} currentShelf={bookCurrentShelf} />
         </div>
         <div className="book-title">{book.title}</div>
         <div className="book-authors">{book.authors}</div>
@@ -173,14 +173,16 @@ class Book extends Component {
 class BookShelfChanger extends Component {
   static propTypes = {
     shelves: PropTypes.object.isRequired,
-    selectShelf: PropTypes.func.isRequired
+    selectShelf: PropTypes.func.isRequired,
+    currentShelf: PropTypes.string
   };
 
   render() {
-    const { shelves, selectShelf } = this.props;
+    const { shelves, selectShelf, currentShelf } = this.props;
+    const defaultValue = currentShelf ? currentShelf : 'move'
     return (
       <div className="book-shelf-changer">
-        <select id="book-shelf-changer-id" onChange={(e) => selectShelf(e.target.value)} defaultValue="move">
+        <select id="book-shelf-changer-id" onChange={(e) => selectShelf(e.target.value)} defaultValue={defaultValue}>
           <option value="move" disabled>Move to...</option>
           {
             Object.entries(shelves).map(([shelfId, shelfName]) => <option key={shelfId} value={shelfId}>{shelfName}</option>)
