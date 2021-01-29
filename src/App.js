@@ -60,7 +60,6 @@ class BookShelf extends Component {
 
   render() {
     const { title, books } = this.props;
-    debugger
     return (
       <div className="bookshelf">
         <h2 className="bookshelf-title">{title}</h2>
@@ -82,7 +81,7 @@ class BookShelfBooks extends Component {
         <ol className="books-grid">
           {books.map((book) => {
             return (
-              <li key={book.title}>
+              <li key={book.id}>
                 <Book book={book} />
               </li>
             )
@@ -100,16 +99,15 @@ class Book extends Component {
 
   render() {
     const { book } = this.props;
-
     return (
       <div className="book">
         <div className="book-top">
-          <div className="book-cover" style={book.cover}></div>
+          <div className="book-cover" style={{ width: 128, height: 188, backgroundImage: `url(${book.imageLinks.thumbnail})` }} ></div>
           <BookShelfChanger />
         </div>
         <div className="book-title">{book.title}</div>
         <div className="book-authors">{book.authors}</div>
-      </div>
+      </div >
     )
   }
 }
