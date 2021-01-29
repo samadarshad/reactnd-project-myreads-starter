@@ -15,5 +15,4 @@ class OpenSearch extends Component {
     }
 }
 
-
 export default OpenSearch

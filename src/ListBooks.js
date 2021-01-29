@@ -11,8 +11,6 @@ class ListBooks extends Component {
         updateBook: PropTypes.func.isRequired
     };
 
-
-
     render() {
         const { books, shelves, updateBook } = this.props;
         const booksByShelf = groupBy(books, "shelf");

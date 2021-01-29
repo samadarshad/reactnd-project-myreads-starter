@@ -3,11 +3,6 @@ import PropTypes from 'prop-types';
 import SearchBooksBar from './SearchBooksBar'
 import BookShelfBooks from './BookShelfBooks'
 
-
-
-
-
-
 class SearchPage extends Component {
     static propTypes = {
         shelves: PropTypes.object.isRequired,

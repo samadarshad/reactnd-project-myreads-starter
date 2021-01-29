@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types';
 import BookShelfBooks from './BookShelfBooks'
 
-
 class BookShelf extends Component {
     static propTypes = {
         title: PropTypes.string.isRequired,
