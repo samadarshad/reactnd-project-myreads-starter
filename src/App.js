@@ -4,25 +4,6 @@ import './App.css'
 import PropTypes from 'prop-types';
 import { Route, Link } from 'react-router-dom'
 
-class SearchBooksResult extends Component {
-  static propTypes = {
-    books: PropTypes.arrayOf(PropTypes.object).isRequired,
-    shelves: PropTypes.object.isRequired,
-    updateBook: PropTypes.func.isRequired
-  };
-
-  render() {
-    const { books, shelves, updateBook } = this.props;
-
-    return (
-
-      <div className="search-books-results">
-        <BookShelfBooks books={books} shelves={shelves} updateBook={updateBook} />
-      </div>
-    )
-  }
-}
-
 class SearchBooksBar extends Component {
   static propTypes = {
     setBooks: PropTypes.func.isRequired
@@ -74,7 +55,8 @@ class SearchBooksBar extends Component {
 class SearchPage extends Component {
   static propTypes = {
     shelves: PropTypes.object.isRequired,
-    updateBook: PropTypes.func.isRequired
+    updateBook: PropTypes.func.isRequired,
+    currentBooks: PropTypes.arrayOf(PropTypes.object)
   };
 
   state = {
@@ -87,11 +69,14 @@ class SearchPage extends Component {
     })
   }
   render() {
-    const { shelves, updateBook } = this.props;
+    const { shelves, updateBook, currentBooks } = this.props;
     return (
       <div className="search-books">
         <SearchBooksBar key="search-books-bar" setBooks={this.setBooks} />
-        <SearchBooksResult key="search-books-results" books={this.state.books} shelves={shelves} updateBook={updateBook} />
+
+        <div className="search-books-results">
+          <BookShelfBooks books={this.state.books} shelves={shelves} updateBook={updateBook} currentBooks={currentBooks} />
+        </div>
       </div>
     )
   }
@@ -121,18 +106,25 @@ class BookShelfBooks extends Component {
   static propTypes = {
     books: PropTypes.arrayOf(PropTypes.object).isRequired,
     shelves: PropTypes.object.isRequired,
-    updateBook: PropTypes.func.isRequired
+    updateBook: PropTypes.func.isRequired,
+    currentBooks: PropTypes.arrayOf(PropTypes.object)
   };
 
   render() {
-    const { books, shelves, updateBook } = this.props;
+    const { books, shelves, updateBook, currentBooks } = this.props;
+
     return (
       <div className="bookshelf-books">
         <ol className="books-grid">
           {books.map((book) => {
+            let bookDisplay = book
+            const matchingBook = (currentBooks ? currentBooks.filter((currentBook) => (currentBook.id === bookDisplay.id))[0] : undefined)
+            if (matchingBook !== undefined) {
+              bookDisplay.shelf = matchingBook.shelf
+            }
             return (
-              <li key={book.id}>
-                <Book book={book} shelves={shelves} updateBook={updateBook} />
+              <li key={bookDisplay.id}>
+                <Book book={bookDisplay} shelves={shelves} updateBook={updateBook} />
               </li>
             )
           })}
@@ -179,7 +171,7 @@ class BookShelfChanger extends Component {
 
   render() {
     const { shelves, selectShelf, currentShelf } = this.props;
-    const defaultValue = currentShelf ? currentShelf : 'move'
+    const defaultValue = currentShelf ? currentShelf : 'none'
     return (
       <div className="book-shelf-changer">
         <select id="book-shelf-changer-id" onChange={(e) => selectShelf(e.target.value)} defaultValue={defaultValue}>
@@ -276,7 +268,7 @@ class BooksApp extends Component {
     return (
       <div className="app">
         <Route exact path='/search' render={() => (
-          <SearchPage key="search-books" shelves={this.shelves} updateBook={this.updateBook} />
+          <SearchPage key="search-books" shelves={this.shelves} updateBook={this.updateBook} currentBooks={this.state.books} />
         )}
         />
         <Route exact path='/' render={() => (
