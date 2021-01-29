@@ -5,8 +5,15 @@ import PropTypes from 'prop-types';
 import { Route, Link } from 'react-router-dom'
 
 class SearchBooksResult extends Component {
+  static propTypes = {
+    books: PropTypes.arrayOf(PropTypes.object).isRequired
+  };
+
   render() {
+    const { books } = this.props;
+
     return (
+
       <div className="search-books-results">
         <ol className="books-grid"></ol>
       </div>
@@ -15,6 +22,31 @@ class SearchBooksResult extends Component {
 }
 
 class SearchBooksBar extends Component {
+  static propTypes = {
+    setBooks: PropTypes.func.isRequired
+  };
+
+  state = {
+    query: ''
+  }
+
+  componentDidUpdate(_, prevState) {
+    const { setBooks } = this.props
+    if (this.state.query !== prevState.query) {
+      BooksAPI.search(this.state.query)
+        .then((results) => {
+          setBooks(results)
+        })
+    }
+
+  }
+
+  handleChange = event => {
+    this.setState({
+      [event.target.name]: event.target.value
+    });
+  };
+
   render() {
     return (
       <div className="search-books-bar">
@@ -24,15 +56,12 @@ class SearchBooksBar extends Component {
         </Link>
 
         <div className="search-books-input-wrapper">
-          {/*
-        NOTES: The search from BooksAPI is limited to a particular set of search terms.
-        You can find these search terms here:
-        https://github.com/udacity/reactnd-project-myreads-starter/blob/master/SEARCH_TERMS.md
-
-        However, remember that the BooksAPI.search method DOES search by title or author. So, don't worry if
-        you don't find a specific author or title. Every search is limited by search terms.
-      */}
-          <input type="text" placeholder="Search by title or author" />
+          <input
+            type="text"
+            name="query"
+            value={this.state.query}
+            placeholder="Search by title or author"
+            onChange={this.handleChange} />
 
         </div>
       </div>
@@ -41,11 +70,20 @@ class SearchBooksBar extends Component {
 }
 
 class SearchPage extends Component {
+  state = {
+    books: []
+  }
+  setBooks = (results) => {
+    console.log(results)
+    this.setState({
+      books: [results]
+    })
+  }
   render() {
     return (
       <div className="search-books">
-        <SearchBooksBar />
-        <SearchBooksResult />
+        <SearchBooksBar key="search-books-bar" setBooks={this.setBooks} />
+        <SearchBooksResult key="search-books-results" books={this.state.books} />
       </div>
     )
   }
@@ -112,7 +150,7 @@ class Book extends Component {
   }
 }
 
-class BookShelfChanger extends Component {
+class BookShelfChanger extends Component { //TODO make this list generated from object
   render() {
     return (
       <div className="book-shelf-changer">
@@ -154,6 +192,12 @@ class ListBooks extends Component {
     books: PropTypes.arrayOf(PropTypes.object).isRequired
   };
 
+  shelfIdToTitle = {
+    currentlyReading: "Currently Reading",
+    wantToRead: "Want to Read",
+    read: "Read"
+  }
+
   render() {
     const { books } = this.props;
     const booksByShelf = groupBy(books, "shelf");
@@ -165,7 +209,7 @@ class ListBooks extends Component {
         <div className="list-books-content">
           <div>
             {
-              Object.entries(booksByShelf).map(([shelfId, books]) => <BookShelf key={shelfId} title={shelfId} books={books} />)
+              Object.entries(booksByShelf).map(([shelfId, books]) => <BookShelf key={shelfId} title={this.shelfIdToTitle[shelfId]} books={books} />)
             }
 
           </div>
@@ -177,92 +221,18 @@ class ListBooks extends Component {
 
 class BooksApp extends Component {
   state = {
-    /**
-     * TODO: Instead of using this state variable to keep track of which page
-     * we're on, use the URL in the browser's address bar. This will ensure that
-     * users can use the browser's back and forward buttons to navigate between
-     * pages, as well as provide a good URL they can bookmark and share.
-     */
-    showSearchPage: false,
-    books: [],
-    bookshelf: [
-      {
-        title: "Currently Reading",
-        books: [
-          {
-            cover: { width: 128, height: 188, backgroundImage: 'url("http://books.google.com/books/content?id=yDtCuFHXbAYC&printsec=frontcover&img=1&zoom=1&imgtk=AFLRE72RRiTR6U5OUg3IY_LpHTL2NztVWAuZYNFE8dUuC0VlYabeyegLzpAnDPeWxE6RHi0C2ehrR9Gv20LH2dtjpbcUcs8YnH5VCCAH0Y2ICaKOTvrZTCObQbsfp4UbDqQyGISCZfGN&source=gbs_api")' },
-            title: "Ender's Game",
-            authors: "Orson Scott Card"
-          },
-          {
-            cover: { width: 128, height: 188, backgroundImage: 'url("http://books.google.com/books/content?id=yDtCuFHXbAYC&printsec=frontcover&img=1&zoom=1&imgtk=AFLRE72RRiTR6U5OUg3IY_LpHTL2NztVWAuZYNFE8dUuC0VlYabeyegLzpAnDPeWxE6RHi0C2ehrR9Gv20LH2dtjpbcUcs8YnH5VCCAH0Y2ICaKOTvrZTCObQbsfp4UbDqQyGISCZfGN&source=gbs_api")' },
-            title: "Ender's Game",
-            authors: "Orson Scott Card"
-          },
-          {
-            cover: { width: 128, height: 188, backgroundImage: 'url("http://books.google.com/books/content?id=yDtCuFHXbAYC&printsec=frontcover&img=1&zoom=1&imgtk=AFLRE72RRiTR6U5OUg3IY_LpHTL2NztVWAuZYNFE8dUuC0VlYabeyegLzpAnDPeWxE6RHi0C2ehrR9Gv20LH2dtjpbcUcs8YnH5VCCAH0Y2ICaKOTvrZTCObQbsfp4UbDqQyGISCZfGN&source=gbs_api")' },
-            title: "Ender's Game",
-            authors: "Orson Scott Card"
-          },
-        ]
-      },
-      {
-        title: "Want to Read",
-        books: [
-          {
-            cover: { width: 128, height: 188, backgroundImage: 'url("http://books.google.com/books/content?id=yDtCuFHXbAYC&printsec=frontcover&img=1&zoom=1&imgtk=AFLRE72RRiTR6U5OUg3IY_LpHTL2NztVWAuZYNFE8dUuC0VlYabeyegLzpAnDPeWxE6RHi0C2ehrR9Gv20LH2dtjpbcUcs8YnH5VCCAH0Y2ICaKOTvrZTCObQbsfp4UbDqQyGISCZfGN&source=gbs_api")' },
-            title: "Ender's Game",
-            authors: "Orson Scott Card"
-          },
-          {
-            cover: { width: 128, height: 188, backgroundImage: 'url("http://books.google.com/books/content?id=yDtCuFHXbAYC&printsec=frontcover&img=1&zoom=1&imgtk=AFLRE72RRiTR6U5OUg3IY_LpHTL2NztVWAuZYNFE8dUuC0VlYabeyegLzpAnDPeWxE6RHi0C2ehrR9Gv20LH2dtjpbcUcs8YnH5VCCAH0Y2ICaKOTvrZTCObQbsfp4UbDqQyGISCZfGN&source=gbs_api")' },
-            title: "Ender's Game",
-            authors: "Orson Scott Card"
-          },
-          {
-            cover: { width: 128, height: 188, backgroundImage: 'url("http://books.google.com/books/content?id=yDtCuFHXbAYC&printsec=frontcover&img=1&zoom=1&imgtk=AFLRE72RRiTR6U5OUg3IY_LpHTL2NztVWAuZYNFE8dUuC0VlYabeyegLzpAnDPeWxE6RHi0C2ehrR9Gv20LH2dtjpbcUcs8YnH5VCCAH0Y2ICaKOTvrZTCObQbsfp4UbDqQyGISCZfGN&source=gbs_api")' },
-            title: "Ender's Game",
-            authors: "Orson Scott Card"
-          },
-        ]
-      },
-      {
-        title: "Read",
-        books: [
-          {
-            cover: { width: 128, height: 188, backgroundImage: 'url("http://books.google.com/books/content?id=yDtCuFHXbAYC&printsec=frontcover&img=1&zoom=1&imgtk=AFLRE72RRiTR6U5OUg3IY_LpHTL2NztVWAuZYNFE8dUuC0VlYabeyegLzpAnDPeWxE6RHi0C2ehrR9Gv20LH2dtjpbcUcs8YnH5VCCAH0Y2ICaKOTvrZTCObQbsfp4UbDqQyGISCZfGN&source=gbs_api")' },
-            title: "Ender's Game",
-            authors: "Orson Scott Card"
-          },
-          {
-            cover: { width: 128, height: 188, backgroundImage: 'url("http://books.google.com/books/content?id=yDtCuFHXbAYC&printsec=frontcover&img=1&zoom=1&imgtk=AFLRE72RRiTR6U5OUg3IY_LpHTL2NztVWAuZYNFE8dUuC0VlYabeyegLzpAnDPeWxE6RHi0C2ehrR9Gv20LH2dtjpbcUcs8YnH5VCCAH0Y2ICaKOTvrZTCObQbsfp4UbDqQyGISCZfGN&source=gbs_api")' },
-            title: "Ender's Game",
-            authors: "Orson Scott Card"
-          },
-          {
-            cover: { width: 128, height: 188, backgroundImage: 'url("http://books.google.com/books/content?id=yDtCuFHXbAYC&printsec=frontcover&img=1&zoom=1&imgtk=AFLRE72RRiTR6U5OUg3IY_LpHTL2NztVWAuZYNFE8dUuC0VlYabeyegLzpAnDPeWxE6RHi0C2ehrR9Gv20LH2dtjpbcUcs8YnH5VCCAH0Y2ICaKOTvrZTCObQbsfp4UbDqQyGISCZfGN&source=gbs_api")' },
-            title: "Ender's Game",
-            authors: "Orson Scott Card"
-          },
-        ]
-      }
-    ]
+    books: []
   }
 
   componentDidMount() {
-    BooksAPI.getAll()
-      .then((books) => {
-        this.setState(() => ({
-          books
-        }))
-      })
+    console.log("booksapp")
   }
 
   render() {
     return (
       <div className="app">
         <Route exact path='/search' render={() => (
-          <SearchPage />
+          <SearchPage key="search-books" />
         )}
         />
         <Route exact path='/' render={() => (
