@@ -1,5 +1,5 @@
 import React, { Component, Fragment } from 'react'
-// import * as BooksAPI from './BooksAPI'
+import * as BooksAPI from './BooksAPI'
 import './App.css'
 import PropTypes from 'prop-types';
 import { Route, Link } from 'react-router-dom'
@@ -60,6 +60,7 @@ class BookShelf extends Component {
 
   render() {
     const { title, books } = this.props;
+    debugger
     return (
       <div className="bookshelf">
         <h2 className="bookshelf-title">{title}</h2>
@@ -76,7 +77,6 @@ class BookShelfBooks extends Component {
 
   render() {
     const { books } = this.props;
-
     return (
       <div className="bookshelf-books">
         <ol className="books-grid">
@@ -143,14 +143,22 @@ class OpenSearch extends Component {
   }
 }
 
+var groupBy = function (xs, key) {
+  return xs.reduce(function (rv, x) {
+    (rv[x[key]] = rv[x[key]] || []).push(x);
+    return rv;
+  }, {});
+};
+
+
 class ListBooks extends Component {
   static propTypes = {
-    bookshelf: PropTypes.arrayOf(PropTypes.object).isRequired
+    books: PropTypes.arrayOf(PropTypes.object).isRequired
   };
 
   render() {
-    const { bookshelf } = this.props;
-
+    const { books } = this.props;
+    const booksByShelf = groupBy(books, "shelf");
     return (
       <div className="list-books">
         <div className="list-books-title">
@@ -158,9 +166,10 @@ class ListBooks extends Component {
         </div>
         <div className="list-books-content">
           <div>
-            {bookshelf.map((shelf) => {
-              return <BookShelf key={shelf.title} title={shelf.title} books={shelf.books} />
-            })}
+            {
+              Object.entries(booksByShelf).map(([shelfId, books]) => <BookShelf key={shelfId} title={shelfId} books={books} />)
+            }
+
           </div>
         </div>
       </div>
@@ -177,7 +186,7 @@ class BooksApp extends Component {
      * pages, as well as provide a good URL they can bookmark and share.
      */
     showSearchPage: false,
-
+    books: [],
     bookshelf: [
       {
         title: "Currently Reading",
@@ -242,6 +251,15 @@ class BooksApp extends Component {
     ]
   }
 
+  componentDidMount() {
+    BooksAPI.getAll()
+      .then((books) => {
+        this.setState(() => ({
+          books
+        }))
+      })
+  }
+
   render() {
     return (
       <div className="app">
@@ -251,7 +269,7 @@ class BooksApp extends Component {
         />
         <Route exact path='/' render={() => (
           <Fragment>
-            <ListBooks bookshelf={this.state.bookshelf} />
+            <ListBooks books={this.state.books} />
             <OpenSearch />
           </Fragment>
         )}
