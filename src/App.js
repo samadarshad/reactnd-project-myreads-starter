@@ -180,12 +180,12 @@ class BookShelfChanger extends Component {
     const { shelves, selectShelf } = this.props;
     return (
       <div className="book-shelf-changer">
-        <select id="book-shelf-changer-id" onChange={(e) => selectShelf(e.target.value)}>
+        <select id="book-shelf-changer-id" onChange={(e) => selectShelf(e.target.value)} defaultValue="move">
           <option value="move" disabled>Move to...</option>
           {
             Object.entries(shelves).map(([shelfId, shelfName]) => <option key={shelfId} value={shelfId}>{shelfName}</option>)
           }
-          <option value="none" selected="selected">None</option>
+          <option value="none">None</option>
         </select>
       </div >
     )
@@ -254,19 +254,20 @@ class BooksApp extends Component {
     read: "Read"
   }
 
-  componentDidMount() {
+  refresh = () => {
     BooksAPI.getAll()
       .then((results) => {
         this.setState({ books: results })
       })
   }
 
+  componentDidMount() {
+    this.refresh()
+  }
+
   updateBook = (book, shelfId) => {
     BooksAPI.update(book, shelfId)
-      .then(BooksAPI.getAll()
-        .then((results) => {
-          this.setState({ books: results })
-        }))
+      .then(this.refresh)
   }
 
   render() {
